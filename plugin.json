@@ -1,0 +1,25 @@
+{
+  "slug": "CLC-ModulatorOne",
+  "name": "CLC-ModulatorOne",
+  "version": "2.0.0",
+  "license": "proprietary",
+  "brand": "CLC",
+  "author": "Jim Keizer",
+  "authorEmail": "",
+  "authorUrl": "",
+  "pluginUrl": "",
+  "manualUrl": "",
+  "sourceUrl": "",
+  "donateUrl": "",
+  "changelogUrl": "",
+  "modules": [
+    {
+      "slug": "CLC-ModulatorOne",
+      "name": "CLC-ModulatorOne",
+      "description": "A modulator that uses musically interesting mathmatical concepts",
+      "tags": [
+        "Low-frequency oscillator"
+      ]
+    }
+  ]
+}

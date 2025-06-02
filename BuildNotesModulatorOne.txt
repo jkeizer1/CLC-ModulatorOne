@@ -1,0 +1,131 @@
+# Build Notes ModulatorOne
+
+Initial build using MINGW64 on Windows in ~/Rack2Dev/<modules>
+
+===========================================================================================================
+#1	$ printenv | grep RACK_DIR
+	RACK_DIR=/home/jkeizer/Rack-SDK
+
+===========================================================================================================
+
+#2 Create the SLUG
+jkeizer@DESKTOP-ERO77N3 MINGW64 ~/Rack2Dev
+$ ../Rack-SDK/helper.py createplugin CLC-ModulatorOne
+Plugin name [CLC-ModulatorOne]:
+Version [2.0.0]:
+License (if open-source, use license identifier from https://spdx.org/licenses/) [proprietary]:
+Brand (prefix for all module names) [CLC-ModulatorOne]: CLC
+Author []: Jim Keizer
+Author email (optional) []:
+Author website URL (optional) []:
+Plugin website URL (optional) []:
+Manual website URL (optional) []:
+Source code URL (optional) []:
+Donate URL (optional) []:
+
+Manifest written to CLC-ModulatorOne/plugin.json
+Created template plugin in CLC-ModulatorOne/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint:   git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint:   git branch -m <name>
+Initialized empty Git repository in /home/jkeizer/Rack2Dev/CLC-ModulatorOne/.git/
+You may use `make`, `make clean`, `make dist`, `make install`, etc in the CLC-ModulatorOne/ directory.
+
+jkeizer@DESKTOP-ERO77N3 MINGW64 ~/Rack2Dev
+$ ls
+CLC-ModulatorOne
+
+jkeizer@DESKTOP-ERO77N3 MINGW64 ~/Rack2Dev/CLC-ModulatorOne
+$ ls -a
+.  ..  .git  .gitignore  BuildNotesModulatorOne.txt  Makefile  plugin.json  res  src
+
+jkeizer@DESKTOP-ERO77N3 MINGW64 ~/Rack2Dev/CLC-ModulatorOne
+$ git status
+On branch master
+
+No commits yet
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .gitignore
+        BuildNotesModulatorOne.txt
+        Makefile
+        plugin.json
+        src/
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+added all above to git (git add)
+
+/res contains plugin.cpp and plugin.hpp
+	added both to git
+/src is empty
+
+===========================================================================================================
+
+#4 - Create SVG Panel per https://vcvrack.com/manual/Panel
+This is done before creating the source files.
+Created 2 Versions: One with Text objects for easy editting, and the real one
+with the texts tranformed to paths.
+
+===========================================================================================================
+
+#5 Create Module source files
+<Rack SDK>/helper.py createmodule <module slug> res/<module slug>.svg src/<module slug>.cpp
+
+$ ~/RACK-SDK/helper.py createmodule CLC-ModulatorOne res/CLC-ModulatorOne.svg src/CLC-ModulatorOne.cpp
+Module name [CLC-ModulatorOne]:
+One-line description (optional) []: A modulator that uses musically interesting mathmatical concepts
+Tags (comma-separated, case-insensitive, see https://vcvrack.com/manual/Manifest#modules-tags for list) []: Low-frequency oscillator
+Added CLC-ModulatorOne to plugin.json
+Found 0 params, 0 inputs, 0 outputs, 1 lights, and 0 custom widgets in "components" layer.
+
+To enable the module, add
+
+        extern Model* modelCLC_ModulatorOne;
+
+to plugin.hpp, and add
+
+        p->addModel(modelCLC_ModulatorOne);
+
+to the init() function in plugin.cpp.
+Source file generated at src/CLC-ModulatorOne.cpp
+
+===========================================================================================================
+
+#6 Makefile
+jkeizer@DESKTOP-ERO77N3 MINGW64 ~/Rack2Dev/CLC-ModulatorOne
+$ make, make dist, make install
+
+g++ -std=c++11 -Wsuggest-override  -fPIC -I/home/jkeizer/Rack/include -I/home/jkeizer/Rack/dep/include -MMD -MP -g -O3 -funsafe-math-optimizations -fno-omit-frame-pointer -Wall -Wextra -Wno-unused-parameter -DARCH_X64 -march=nehalem -DARCH_WIN -D_USE_MATH_DEFINES -municode  -c -o build/src/CLC-ModulatorOne.cpp.o src/CLC-ModulatorOne.cpp
+g++ -std=c++11 -Wsuggest-override  -fPIC -I/home/jkeizer/Rack/include -I/home/jkeizer/Rack/dep/include -MMD -MP -g -O3 -funsafe-math-optimizations -fno-omit-frame-pointer -Wall -Wextra -Wno-unused-parameter -DARCH_X64 -march=nehalem -DARCH_WIN -D_USE_MATH_DEFINES -municode  -c -o build/src/plugin.cpp.o src/plugin.cpp
+g++ -o plugin.dll build/src/CLC-ModulatorOne.cpp.o build/src/plugin.cpp.o -shared -L/home/jkeizer/Rack -lRack -static-libstdc++
+
+jkeizer@DESKTOP-ERO77N3 MINGW64 ~/Rack2Dev/CLC-ModulatorOne
+$ make dist
+rm -rf dist
+mkdir -p dist/CLC-ModulatorOne
+cp plugin.dll dist/CLC-ModulatorOne/
+strip -s dist/CLC-ModulatorOne/plugin.dll
+cp -r --parents res   plugin.json dist/CLC-ModulatorOne/
+cd dist && tar -c CLC-ModulatorOne | zstd -19 -o "CLC-ModulatorOne"-"2.0.0"-win-x64.vcvplugin
+/*stdin*\            : 32.57%   (   240 KiB =>   78.2 KiB, CLC-ModulatorOne-2.0.0-win-x64.vcvplugin)
+
+jkeizer@DESKTOP-ERO77N3 MINGW64 ~/Rack2Dev/CLC-ModulatorOne
+$ make install
+rm -rf dist
+mkdir -p dist/CLC-ModulatorOne
+cp plugin.dll dist/CLC-ModulatorOne/
+strip -s dist/CLC-ModulatorOne/plugin.dll
+cp -r --parents res   plugin.json dist/CLC-ModulatorOne/
+cd dist && tar -c CLC-ModulatorOne | zstd -19 -o "CLC-ModulatorOne"-"2.0.0"-win-x64.vcvplugin
+/*stdin*\            : 32.57%   (   240 KiB =>   78.2 KiB, CLC-ModulatorOne-2.0.0-win-x64.vcvplugin)
+mkdir -p "C:\Users\james/Documents/Rack2/plugins-win-x64"
+cp dist/*.vcvplugin "C:\Users\james/Documents/Rack2/plugins-win-x64"/
