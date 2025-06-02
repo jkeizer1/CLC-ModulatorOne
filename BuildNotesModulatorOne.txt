@@ -129,3 +129,22 @@ cd dist && tar -c CLC-ModulatorOne | zstd -19 -o "CLC-ModulatorOne"-"2.0.0"-win-
 /*stdin*\            : 32.57%   (   240 KiB =>   78.2 KiB, CLC-ModulatorOne-2.0.0-win-x64.vcvplugin)
 mkdir -p "C:\Users\james/Documents/Rack2/plugins-win-x64"
 cp dist/*.vcvplugin "C:\Users\james/Documents/Rack2/plugins-win-x64"/
+ 
+
+===========================================================================================================
+
+#7 Git
+Create remote repo CLC-ModulatorOne 
+
+git config --global pull.rebase false
+This sets merge as the default behavior for all repositories. 
+
+git pull --no-rebase origin main
+
+Now the local and remote repos are back in synch.
+
+Note when prompted for credentials enter user id and the access token.
+
+
+
+
