@@ -140,10 +140,24 @@ git config --global pull.rebase false
 This sets merge as the default behavior for all repositories. 
 
 git pull --no-rebase origin main
+jkeizer@DESKTOP-ERO77N3 MINGW64 ~/Rack2Dev/CLC-ModulatorOne
+$ git pull --rebase origin main
+From https://github.com/jkeizer1/CLC-ModulatorOne
+ * branch            main       -> FETCH_HEAD
+Successfully rebased and updated refs/heads/main.
 
-Now the local and remote repos are back in synch.
+-----> Now the local and remote repos are back in synch.
 
 Note when prompted for credentials enter user id and the access token.
+
+git push -u origin main -- must enter uname and paste the token
+
+#8 Update plugin.cpp and plugin.hpp
+
+-----> update the module names
+
+
+
 
 
 

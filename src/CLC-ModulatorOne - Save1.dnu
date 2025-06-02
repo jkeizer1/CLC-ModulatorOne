@@ -1,0 +1,195 @@
+#include "plugin.hpp"
+
+
+struct CLC_ModulatorOne : Module {
+	enum ParamId {
+		MODE_PARAM,
+		RATE_PARAM,
+		ONESHOT_PARAM,
+		PARAMS_LEN
+	};
+	enum InputId {
+		RATE_CV_INPUT,
+		ONESHOT_CV_INPUT,
+		RESET_INPUT,
+		INPUTS_LEN
+	};
+	enum OutputId {
+		MODULATORSIGNAL_OUTPUT,  // MODULATORSIGNAL_OUTPUT
+		OUTPUTS_LEN
+	};
+	enum LightId {
+		MODULATORLED_LIGHT,
+		LIGHTS_LEN
+	};
+
+
+    enum Mode {
+        POLYGON,
+        FIBONACCI,
+        GOLDEN_RATIO,
+        HARMONIC,
+        BOUNCING_BALL,
+        CRESTING_OCEAN,
+        SPIRAL_GALAXY,
+        WIND_GUSTS,
+        NUM_MODES
+    };
+
+    float phase = 0.0f;
+    float sampleRate = 0.0f;
+    int currentStep = 0;
+    bool triggered = false;
+    // For Wind Gusts noise
+    float noisePhase = 0.0f;
+    float currentNoise = 0.0f;
+    float nextNoise = 0.0f;
+    float noiseUpdateRate = 0.1f; // Update noise every 0.1s
+    std::default_random_engine rng;
+    std::uniform_real_distribution<float> dist{-180.0f, 180.0f};
+
+    static constexpr float MAX_RATE = 10.0f; // Max modulation rate (Hz)
+    static constexpr float MIN_RATE = 0.1f;  // Min modulation rate (Hz)
+    static constexpr float BOUNCE_DAMPING = 0.8f; // Bouncing Ball damping
+    static constexpr float WAVE_SKEW = 2.0f; // Cresting Ocean asymmetry
+    static constexpr float SPIRAL_SCALE = 90.0f; // Spiral Galaxy scaling factor
+	
+	CLC_ModulatorOne() {
+		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+		configParam(MODE_PARAM, 0.f, NUM_MODES - 1, 0.f, "Modulation Mode");
+		configParam(RATE_PARAM, 0.f, 1.f, 0.5f, "Rate", " Hz", 0.f, MAX_RATE - MIN_RATE, MIN_RATE);
+		configParam(ONESHOT_PARAM, 0.f, 1.f, 0.f, "");
+		configInput(RATE_CV_INPUT, "");
+		configInput(ONESHOT_CV_INPUT, "");
+		configInput(RESET_INPUT, "Reset Trigger");
+		configOutput(MODULATORSIGNAL_OUTPUT, "Modulator Output");
+		// Initialize noise for Wind Gusts
+        rng.seed(std::random_device()());
+        currentNoise = dist(rng);
+        nextNoise = dist(rng);
+	}
+
+
+	
+	float getPhaseAngle(float mode, int step, float phase) {
+        switch (static_cast<int>(mode)) {
+            case POLYGON: {
+                int n = 3 + (step % 5); // Triangle (60°), square (90°), pentagon (108°), etc.
+                return (n - 2) * 180.0f / n;
+            }
+            case FIBONACCI: {
+                static const float fib[] = {1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233};
+                return fmodf(fib[step % 13] * 10.0f, 360.0f);
+            }
+            case GOLDEN_RATIO: {
+                static const float goldenAngle = 360.0f / 1.61803398875f; // ≈ 222.49°
+                return fmodf(step * goldenAngle, 360.0f);
+            }
+            case HARMONIC: {
+                int n = 1 + (step % 8); // 360°, 180°, 120°, ...
+                return 360.0f / n;
+            }
+            case BOUNCING_BALL: {
+                float angle = 180.0f * std::pow(BOUNCE_DAMPING, step);
+                return fmodf(angle, 360.0f);
+            }
+            case CRESTING_OCEAN: {
+                float skewedPhase = std::pow(std::sin(2.0f * M_PI * phase), WAVE_SKEW);
+                return 180.0f * (skewedPhase + 1.0f); // 0–360°
+            }
+            case SPIRAL_GALAXY: {
+                // Logarithmic spiral: θ = k * log(1 + step)
+                float angle = SPIRAL_SCALE * std::log1p(step);
+                return fmodf(angle, 360.0f);
+            }
+            case WIND_GUSTS: {
+                // Interpolate between random noise values
+                return currentNoise + (nextNoise - currentNoise) * phase;
+            }
+            default:
+                return 0.0f;
+        }
+    }
+		
+	void process(const ProcessArgs& args) override {
+        float mode = params[MODE_PARAM].getValue();
+        float rate = params[RATE_PARAM].getValue() * (MAX_RATE - MIN_RATE) + MIN_RATE;
+
+        // Check for reset trigger
+        if (inputs[RESET_INPUT].isConnected()) {
+            float trigger = inputs[RESET_INPUT].getVoltage();
+            if (trigger >= 1.0f && !triggered) {
+                phase = 0.0f;
+                noisePhase = 0.0f;
+                currentStep = 0;
+                triggered = true;
+                // Reset noise for Wind Gusts
+                if (static_cast<int>(mode) == WIND_GUSTS) {
+                    currentNoise = dist(rng);
+                    nextNoise = dist(rng);
+                }
+            } else if (trigger < 1.0f) {
+                triggered = false;
+            }
+        }
+
+        // Update phase
+        if (static_cast<int>(mode) == CRESTING_OCEAN || static_cast<int>(mode) == WIND_GUSTS) {
+            phase += rate / sampleRate;
+            if (phase >= 1.0f) {
+                phase -= 1.0f;
+                if (static_cast<int>(mode) == WIND_GUSTS) {
+                    currentNoise = nextNoise;
+                    nextNoise = dist(rng);
+                }
+            }
+        } else {
+            phase += rate / sampleRate;
+            if (phase >= 1.0f) {
+                phase -= 1.0f;
+                currentStep++;
+            }
+        }
+
+        // Update noise phase for Wind Gusts
+        if (static_cast<int>(mode) == WIND_GUSTS) {
+            noisePhase += noiseUpdateRate / sampleRate;
+            if (noisePhase >= 1.0f) {
+                noisePhase -= 1.0f;
+            }
+        }
+
+        // Compute phase angle and convert to CV (0–10V for 0–360°)
+        float angle = getPhaseAngle(mode, currentStep, noisePhase);
+        float cv = angle / 360.0f * 10.0f;
+        outputs[MODULATORSIGNAL_OUTPUT].setVoltage(cv);
+    }
+};
+
+
+struct CLC_ModulatorOneWidget : ModuleWidget {
+	CLC_ModulatorOneWidget(CLC_ModulatorOne* module) {
+		setModule(module);
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/CLC-ModulatorOne.svg")));
+
+		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(20.32, 27.484)), module, CLC_ModulatorOne::MODE_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(9.991, 49.107)), module, CLC_ModulatorOne::RATE_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(30.808, 49.195)), module, CLC_ModulatorOne::ONESHOT_PARAM));
+
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(9.895, 66.113)), module, CLC_ModulatorOne::RATE_CV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(30.533, 66.113)), module, CLC_ModulatorOne::ONESHOT_CV_INPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(20.32, 87.809)), module, CLC_ModulatorOne::RESET_INPUT));
+
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(20.32, 110.034)), module, CLC_ModulatorOne::MODULATORSIGNAL_OUTPUT));
+
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(20.32, 19.394)), module, CLC_ModulatorOne::MODULATORLED_LIGHT));
+	}
+};
+
+
+Model* modelCLC_ModulatorOne = createModel<CLC_ModulatorOne, CLC_ModulatorOneWidget>("CLC-ModulatorOne");

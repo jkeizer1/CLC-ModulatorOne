@@ -96,7 +96,7 @@ struct CLC_ModulatorOne : Module {
                 return fmodf(step * goldenAngle, 360.0f);
             }
             case HARMONIC: {
-                int n = 2 + (step % 7); // Skip n=1, use n=2 to 8
+                int n = 1 + (step % 8);
                 return 360.0f / n;
             }
             case BOUNCING_BALL: {

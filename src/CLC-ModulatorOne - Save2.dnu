@@ -1,5 +1,4 @@
 #include "plugin.hpp"
-#include <cmath>
 
 struct CLC_ModulatorOne : Module {
     enum ParamId {
@@ -38,53 +37,47 @@ struct CLC_ModulatorOne : Module {
     float phase = 0.0f;
     float sampleRate = 0.0f;
     int currentStep = 0;
-    dsp::SchmittTrigger resetTrigger;
-    bool isCycleActive = false;
+    bool triggered = false;
+    // For Wind Gusts noise
     float noisePhase = 0.0f;
     float currentNoise = 0.0f;
     float nextNoise = 0.0f;
-    float noiseUpdateRate = 10.0f;
+    float noiseUpdateRate = 0.1f; // Update noise every 0.1s
     std::default_random_engine rng;
     std::uniform_real_distribution<float> dist{-180.0f, 180.0f};
 
-    static constexpr float MAX_RATE = 10.0f;
-    static constexpr float MIN_RATE = 0.1f;
-    static constexpr float BOUNCE_DAMPING = 0.8f;
-    static constexpr float WAVE_SKEW = 1.5f;
-    static constexpr float SPIRAL_SCALE = 180.0f;
-    static constexpr int BOUNCE_CYCLE_STEPS = 20;
-    static constexpr int MAX_SPIRAL_STEPS = 100;
+    static constexpr float MAX_RATE = 10.0f; // Max modulation rate (Hz)
+    static constexpr float MIN_RATE = 0.1f;  // Min modulation rate (Hz)
+    static constexpr float BOUNCE_DAMPING = 0.8f; // Bouncing Ball damping
+    static constexpr float WAVE_SKEW = 2.0f; // Cresting Ocean asymmetry
+    static constexpr float SPIRAL_SCALE = 90.0f; // Spiral Galaxy scaling factor
 
     CLC_ModulatorOne() {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-        configSwitch(MODE_PARAM, 0.f, NUM_MODES - 1, 0.f, "Modulation Mode", {
-            "Polygon", "Fibonacci", "Golden Ratio", "Harmonic",
-            "Bouncing Ball", "Cresting Ocean", "Spiral Galaxy", "Wind Gusts"
-        });
+        configParam(MODE_PARAM, 0.f, NUM_MODES - 1, 0.f, "Modulation Mode");
         configParam(RATE_PARAM, 0.f, 1.f, 0.5f, "Rate", " Hz", 0.f, MAX_RATE - MIN_RATE, MIN_RATE);
-        configSwitch(ONESHOT_PARAM, 0.f, 1.f, 0.f, "One-Shot", {"Off", "On"});
-        configInput(RATE_CV_INPUT, "Rate CV");
-        configInput(ONESHOT_CV_INPUT, "One-Shot CV");
-        configInput(RESET_INPUT, "Reset/Trigger");
+        configParam(ONESHOT_PARAM, 0.f, 1.f, 0.f, "");
+        configInput(RATE_CV_INPUT, "");
+        configInput(ONESHOT_CV_INPUT, "");
+        configInput(RESET_INPUT, "Reset Trigger");
         configOutput(MODULATORSIGNAL_OUTPUT, "Modulator Output");
+        // Initialize sample rate
         sampleRate = APP->engine->getSampleRate();
+        // Initialize noise for Wind Gusts
         rng.seed(std::random_device()());
         currentNoise = dist(rng);
         nextNoise = dist(rng);
     }
 
+    // Handle sample rate changes
     void onSampleRateChange() override {
         sampleRate = APP->engine->getSampleRate();
-    }
-
-    bool isSmoothMode(int mode) {
-        return mode == CRESTING_OCEAN || mode == WIND_GUSTS;
     }
 
     float getPhaseAngle(float mode, int step, float phase) {
         switch (static_cast<int>(mode)) {
             case POLYGON: {
-                int n = 3 + (step % 5);
+                int n = 3 + (step % 5); // Triangle (60°), square (90°), pentagon (108°), etc.
                 return (n - 2) * 180.0f / n;
             }
             case FIBONACCI: {
@@ -92,25 +85,23 @@ struct CLC_ModulatorOne : Module {
                 return fmodf(fib[step % 13] * 10.0f, 360.0f);
             }
             case GOLDEN_RATIO: {
-                static const float goldenAngle = 360.0f / 1.61803398875f;
+                static const float goldenAngle = 360.0f / 1.61803398875f; // ≈ 222.49°
                 return fmodf(step * goldenAngle, 360.0f);
             }
             case HARMONIC: {
-                int n = 2 + (step % 7); // Skip n=1, use n=2 to 8
+                int n = 1 + (step % 8); // 360°, 180°, 120°, ...
                 return 360.0f / n;
             }
             case BOUNCING_BALL: {
-                float angle = 180.0f * std::pow(BOUNCE_DAMPING, step % BOUNCE_CYCLE_STEPS);
+                float angle = 180.0f * std::pow(BOUNCE_DAMPING, step);
                 return fmodf(angle, 360.0f);
             }
             case CRESTING_OCEAN: {
-                float sine = std::sin(2.0f * M_PI * phase);
-                float skewedPhase = std::copysign(std::pow(std::abs(sine), WAVE_SKEW), sine);
-                return 180.0f * (skewedPhase + 1.0f);
+                float skewedPhase = std::pow(std::sin(2.0f * M_PI * phase), WAVE_SKEW);
+                return 180.0f * (skewedPhase + 1.0f); // 0–360°
             }
             case SPIRAL_GALAXY: {
-                int clampedStep = step % MAX_SPIRAL_STEPS;
-                float angle = SPIRAL_SCALE * std::log1p(clampedStep);
+                float angle = SPIRAL_SCALE * std::log1p(step);
                 return fmodf(angle, 360.0f);
             }
             case WIND_GUSTS: {
@@ -123,68 +114,55 @@ struct CLC_ModulatorOne : Module {
 
     void process(const ProcessArgs& args) override {
         float mode = params[MODE_PARAM].getValue();
-        float rateCV = inputs[RATE_CV_INPUT].isConnected() ? inputs[RATE_CV_INPUT].getVoltage() / 10.0f : 0.0f;
-        float rateParam = clamp(params[RATE_PARAM].getValue() + rateCV, 0.0f, 1.0f);
-        float rate = rateParam * (MAX_RATE - MIN_RATE) + MIN_RATE;
-        bool oneShotSwitch = params[ONESHOT_PARAM].getValue() > 0.5f;
-        bool isSmooth = isSmoothMode(static_cast<int>(mode));
-        float cv = 0.0f;
+        float rate = params[RATE_PARAM].getValue() * (MAX_RATE - MIN_RATE) + MIN_RATE;
 
-        // Detect reset/trigger
+        // Check for reset trigger
         if (inputs[RESET_INPUT].isConnected()) {
-            if (resetTrigger.process(inputs[RESET_INPUT].getVoltage(), 1.0f, 0.1f)) {
+            float trigger = inputs[RESET_INPUT].getVoltage();
+            if (trigger >= 1.0f && !triggered) {
                 phase = 0.0f;
-                currentStep = 0;
                 noisePhase = 0.0f;
-                isCycleActive = true;
+                currentStep = 0;
+                triggered = true;
+                if (static_cast<int>(mode) == WIND_GUSTS) {
+                    currentNoise = dist(rng);
+                    nextNoise = dist(rng);
+                }
+            } else if (trigger < 1.0f) {
+                triggered = false;
+            }
+        }
+
+        // Update phase
+        if (static_cast<int>(mode) == CRESTING_OCEAN || static_cast<int>(mode) == WIND_GUSTS) {
+            phase += rate / sampleRate;
+            if (phase >= 1.0f) {
+                phase -= 1.0f;
                 if (static_cast<int>(mode) == WIND_GUSTS) {
                     currentNoise = nextNoise;
                     nextNoise = dist(rng);
                 }
             }
-        }
-
-        // Update phase or step
-        bool shouldUpdate = !oneShotSwitch || (oneShotSwitch && isCycleActive);
-        if (shouldUpdate) {
-            if (isSmooth) {
-                phase += rate / sampleRate;
-                if (phase >= 1.0f) {
-                    phase = 0.0f;
-                    if (static_cast<int>(mode) == WIND_GUSTS) {
-                        currentNoise = nextNoise;
-                        nextNoise = dist(rng);
-                    }
-                    if (oneShotSwitch) {
-                        isCycleActive = false;
-                    }
-                }
-            } else {
-                phase += rate / sampleRate;
-                if (phase >= 1.0f) {
-                    phase = 0.0f;
-                    currentStep++;
-                    if (oneShotSwitch) {
-                        isCycleActive = false;
-                    }
-                }
-            }
-
-            if (static_cast<int>(mode) == WIND_GUSTS) {
-                noisePhase += noiseUpdateRate / sampleRate;
-                if (noisePhase >= 1.0f) {
-                    noisePhase = 0.0f;
-                    currentNoise = nextNoise;
-                    nextNoise = dist(rng);
-                }
+        } else {
+            phase += rate / sampleRate;
+            if (phase >= 1.0f) {
+                phase -= 1.0f;
+                currentStep++;
             }
         }
 
-        // Compute output
-        float angle = getPhaseAngle(mode, currentStep, phase);
-        cv = angle / 360.0f * 10.0f;
+        // Update noise phase for Wind Gusts
+        if (static_cast<int>(mode) == WIND_GUSTS) {
+            noisePhase += noiseUpdateRate / sampleRate;
+            if (noisePhase >= 1.0f) {
+                noisePhase -= 1.0f;
+            }
+        }
+
+        // Compute phase angle and convert to CV (0–10V for 0–360°)
+        float angle = getPhaseAngle(mode, currentStep, noisePhase);
+        float cv = angle / 360.0f * 10.0f;
         outputs[MODULATORSIGNAL_OUTPUT].setVoltage(cv);
-        lights[MODULATORLED_LIGHT].setBrightness(cv / 10.0f);
     }
 };
 
@@ -200,7 +178,7 @@ struct CLC_ModulatorOneWidget : ModuleWidget {
 
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(20.32, 27.484)), module, CLC_ModulatorOne::MODE_PARAM));
         addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(9.991, 49.107)), module, CLC_ModulatorOne::RATE_PARAM));
-        addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(30.808, 49.195)), module, CLC_ModulatorOne::ONESHOT_PARAM));
+        addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(30.808, 49.195)), module, CLC_ModulatorOne::ONESHOT_PARAM));
 
         addInput(createInputCentered<PJ301MPort>(mm2px(Vec(9.895, 66.113)), module, CLC_ModulatorOne::RATE_CV_INPUT));
         addInput(createInputCentered<PJ301MPort>(mm2px(Vec(30.533, 66.113)), module, CLC_ModulatorOne::ONESHOT_CV_INPUT));
