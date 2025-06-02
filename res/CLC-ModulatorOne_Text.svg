@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="40.64mm"
+   height="128.5mm"
+   viewBox="0 0 40.64 128.5"
+   version="1.1"
+   id="svg5"
+   sodipodi:docname="CLC-ModulatorOne_Text.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs5">
+    <rect
+       x="24.945766"
+       y="174.62036"
+       width="125.83753"
+       height="24.945766"
+       id="rect9" />
+    <rect
+       x="11.641358"
+       y="8.3152554"
+       width="130.82669"
+       height="16.630511"
+       id="rect7" />
+    <rect
+       x="11.641358"
+       y="8.3152554"
+       width="130.82669"
+       height="16.630511"
+       id="rect8" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview5"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="1.8039133"
+     inkscape:cx="-4.4348029"
+     inkscape:cy="220.90862"
+     inkscape:window-width="1460"
+     inkscape:window-height="1401"
+     inkscape:window-x="95"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <!-- Background -->
+  <!-- Title -->
+  <!-- MODE_PARAM knob -->
+  <!-- RATE_PARAM knob -->
+  <!-- RESET_INPUT port -->
+  <!-- PHASE_CV_OUTPUT port -->
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="panel">
+    <rect
+       x="0"
+       y="0"
+       width="40.64"
+       height="128.5"
+       fill="#2b2b2b"
+       id="rect1"
+       style="fill:#eaeaea;fill-opacity:1"
+       inkscape:label="ONESHOT_CV_LABEL" />
+    <rect
+       style="display:inline;fill:#0b0b0b;fill-opacity:1;stroke-width:0.213843"
+       id="rect17"
+       width="8.7314367"
+       height="8.9459457"
+       x="15.954281"
+       y="105.40424"
+       inkscape:label="OUTPUT_SQUARE" />
+    <text
+       x="20.253681"
+       y="37.354164"
+       font-family="'DejaVu Sans'"
+       font-size="2.5px"
+       fill="#ffffff"
+       text-anchor="middle"
+       id="text2"
+       inkscape:label="MODE_LABEL"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-anchor:middle;fill:#000000;fill-opacity:1">Mode</text>
+    <text
+       x="9.7386074"
+       y="59.014736"
+       font-family="'DejaVu Sans'"
+       font-size="2.5px"
+       fill="#ffffff"
+       text-anchor="middle"
+       id="text3"
+       inkscape:label="RATE_LABEL"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-anchor:middle;fill:#000000;fill-opacity:1">Rate</text>
+    <text
+       x="19.877087"
+       y="95.444923"
+       font-family="'DejaVu Sans'"
+       font-size="2.5px"
+       fill="#ffffff"
+       text-anchor="middle"
+       id="text4"
+       inkscape:label="RESET_LABEL"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-anchor:middle;fill:#000000;fill-opacity:1">Reset</text>
+    <text
+       x="20.293301"
+       y="120"
+       font-family="'DejaVu Sans'"
+       font-size="2.5px"
+       fill="#ffffff"
+       text-anchor="middle"
+       id="text5"
+       inkscape:label="MODULATORSIGNAL_LABEL"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-anchor:middle;fill:#000000;fill-opacity:1">Modulator Signal</text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,0.44627762,-0.41485068)"
+       id="text7"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;white-space:pre;shape-inside:url(#rect7);display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.933543;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       inkscape:label="CREATELISTENCREATE_LABEL"><tspan
+         x="29.029297"
+         y="15.520489"
+         id="tspan1">CreateListenCreate Synths</tspan></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,-1.9067343,-40.314615)"
+       id="text9"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;white-space:pre;shape-inside:url(#rect9);display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.933543;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       inkscape:label="MODULATORONE_LABEL"><tspan
+         x="34.946289"
+         y="189.03316"
+         id="tspan2">Modulator One</tspan></text>
+    <text
+       x="30.066296"
+       y="58.721176"
+       font-family="'DejaVu Sans'"
+       font-size="2.5px"
+       fill="#ffffff"
+       text-anchor="middle"
+       id="text8"
+       inkscape:label="ONESHOT_LABEL"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-anchor:middle;fill:#000000;fill-opacity:1"><tspan
+         sodipodi:role="line"
+         id="tspan8"
+         x="30.066296"
+         y="58.721176">One Shot</tspan></text>
+    <text
+       x="9.7386074"
+       y="74.889748"
+       font-family="'DejaVu Sans'"
+       font-size="2.5px"
+       fill="#ffffff"
+       text-anchor="middle"
+       id="text10"
+       inkscape:label="RATE_CV_LABEL"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-anchor:middle;fill:#000000;fill-opacity:1">Rate</text>
+    <text
+       x="30.376118"
+       y="74.36058"
+       font-family="'DejaVu Sans'"
+       font-size="2.5px"
+       fill="#ffffff"
+       text-anchor="middle"
+       id="text11"
+       inkscape:label="RATE_CV_LABEL"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-anchor:middle;fill:#000000;fill-opacity:1"><tspan
+         sodipodi:role="line"
+         id="tspan11"
+         x="30.376118"
+         y="74.36058">OneShot</tspan><tspan
+         sodipodi:role="line"
+         id="tspan12"
+         x="30.376118"
+         y="78.770302">CV</tspan></text>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer1"
+     inkscape:label="components">
+    <circle
+       style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.247;stroke-linecap:round;stroke-linejoin:round"
+       id="path1"
+       cx="30.807909"
+       cy="49.194626"
+       r="2.6400936"
+       inkscape:label="ONESHOT" />
+    <circle
+       style="fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:0.247;stroke-linecap:round;stroke-linejoin:round"
+       id="path2"
+       cx="20.32"
+       cy="19.39427"
+       r="2.0742533"
+       inkscape:label="MODULATORLED" />
+    <circle
+       style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.247;stroke-linecap:round;stroke-linejoin:round"
+       id="path3"
+       cx="20.32"
+       cy="27.483858"
+       r="3.3188055"
+       inkscape:label="MODE" />
+    <circle
+       style="fill:#00ff00;fill-opacity:1;stroke:none;stroke-width:0.247;stroke-linecap:round;stroke-linejoin:round"
+       id="path8"
+       cx="9.8951159"
+       cy="66.113342"
+       r="1.7631154"
+       inkscape:label="RATE_CV" />
+    <circle
+       style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.247;stroke-linecap:round;stroke-linejoin:round"
+       id="path4"
+       cx="9.9911442"
+       cy="49.106785"
+       r="3.6299436"
+       inkscape:label="RATE" />
+    <circle
+       style="fill:#00ff00;fill-opacity:1;stroke:none;stroke-width:0.247;stroke-linecap:round;stroke-linejoin:round"
+       id="circle10"
+       cx="30.532625"
+       cy="66.113342"
+       r="1.7631154"
+       inkscape:label="ONESHOT_CV" />
+    <circle
+       style="fill:#00ff00;fill-opacity:1;stroke:none;stroke-width:0.247;stroke-linecap:round;stroke-linejoin:round"
+       id="circle1"
+       cx="20.32"
+       cy="87.809196"
+       r="1.7631154"
+       inkscape:label="RESET" />
+    <circle
+       style="fill:#0000ff;fill-opacity:1;stroke:none;stroke-width:0.247;stroke-linecap:round;stroke-linejoin:round"
+       id="circle2"
+       cx="20.32"
+       cy="110.03422"
+       r="1.7631154"
+       inkscape:label="MODULATORSIGNAL" />
+  </g>
+</svg>
