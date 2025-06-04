@@ -158,7 +158,7 @@ struct CLC_ModulatorOne : Module {
         float cv = 0.0f;
 
 		// enable control ov oneshot switch via CV
-		DEBUG("oneShoteCVparm = %f", oneShotCVParm);
+		//DEBUG("oneShoteCVparm = %f", oneShotCVParm);
 		oneShotSwitch = oneShotSwitch || (static_cast<bool>(oneShotCVParm > 0.5f));
 		
         // Detect reset/trigger
