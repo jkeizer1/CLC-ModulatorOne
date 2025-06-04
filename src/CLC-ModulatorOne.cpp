@@ -1,5 +1,6 @@
 #include "plugin.hpp"
 #include <cmath>
+#include <random>
 
 struct CLC_ModulatorOne : Module {
     enum ParamId {
@@ -46,6 +47,7 @@ struct CLC_ModulatorOne : Module {
     float noiseUpdateRate = 10.0f;
     std::default_random_engine rng;
     std::uniform_real_distribution<float> dist{-180.0f, 180.0f};
+    bool justTriggered = false; // New flag to ensure initial voltage is 0V
 
     static constexpr float MAX_RATE = 10.0f;
     static constexpr float MIN_RATE = 0.1f;
@@ -71,6 +73,7 @@ struct CLC_ModulatorOne : Module {
         rng.seed(std::random_device()());
         currentNoise = dist(rng);
         nextNoise = dist(rng);
+        resetTrigger.reset();
     }
 
     void onSampleRateChange() override {
@@ -79,6 +82,29 @@ struct CLC_ModulatorOne : Module {
 
     bool isSmoothMode(int mode) {
         return mode == CRESTING_OCEAN || mode == WIND_GUSTS;
+    }
+
+    int getCycleLength(int mode) {
+        switch (mode) {
+            case POLYGON:
+                return 5; // Cycle through n=3 to 7
+            case FIBONACCI:
+                return 13; // 13 steps based on fib array
+            case GOLDEN_RATIO:
+                return 8; // One full rotation
+            case HARMONIC:
+                return 7; // Cycle through n=2 to 8
+            case BOUNCING_BALL:
+                return BOUNCE_CYCLE_STEPS; // 20 steps
+            case CRESTING_OCEAN:
+                return 1; // One phase cycle
+            case SPIRAL_GALAXY:
+                return MAX_SPIRAL_STEPS; // 100 steps
+            case WIND_GUSTS:
+                return 1; // One phase cycle
+            default:
+                return 1;
+        }
     }
 
     float getPhaseAngle(float mode, int step, float phase) {
@@ -96,7 +122,7 @@ struct CLC_ModulatorOne : Module {
                 return fmodf(step * goldenAngle, 360.0f);
             }
             case HARMONIC: {
-                int n = 2 + (step % 7); // Skip n=1, use n=2 to 8
+                int n = 2 + (step % 7); // n=2 to 8
                 return 360.0f / n;
             }
             case BOUNCING_BALL: {
@@ -127,16 +153,22 @@ struct CLC_ModulatorOne : Module {
         float rateParam = clamp(params[RATE_PARAM].getValue() + rateCV, 0.0f, 1.0f);
         float rate = rateParam * (MAX_RATE - MIN_RATE) + MIN_RATE;
         bool oneShotSwitch = params[ONESHOT_PARAM].getValue() > 0.5f;
+		float oneShotCVParm = inputs[ONESHOT_CV_INPUT].isConnected() ? inputs[ONESHOT_CV_INPUT].getVoltage() : 0.0f;
         bool isSmooth = isSmoothMode(static_cast<int>(mode));
         float cv = 0.0f;
 
+		// enable control ov oneshot switch via CV
+		DEBUG("oneShoteCVparm = %f", oneShotCVParm);
+		oneShotSwitch = oneShotSwitch || (static_cast<bool>(oneShotCVParm > 0.5f));
+		
         // Detect reset/trigger
         if (inputs[RESET_INPUT].isConnected()) {
-            if (resetTrigger.process(inputs[RESET_INPUT].getVoltage(), 1.0f, 0.1f)) {
+            if (resetTrigger.process(inputs[RESET_INPUT].getVoltage(), 0.0f, 1.0f)) {
                 phase = 0.0f;
                 currentStep = 0;
                 noisePhase = 0.0f;
                 isCycleActive = true;
+                justTriggered = true; // Set flag to force initial 0V output
                 if (static_cast<int>(mode) == WIND_GUSTS) {
                     currentNoise = nextNoise;
                     nextNoise = dist(rng);
@@ -144,45 +176,63 @@ struct CLC_ModulatorOne : Module {
             }
         }
 
-        // Update phase or step
-        bool shouldUpdate = !oneShotSwitch || (oneShotSwitch && isCycleActive);
-        if (shouldUpdate) {
-            if (isSmooth) {
-                phase += rate / sampleRate;
-                if (phase >= 1.0f) {
-                    phase = 0.0f;
-                    if (static_cast<int>(mode) == WIND_GUSTS) {
+        // Handle output voltage
+        if (oneShotSwitch && !isCycleActive) {
+            // Output 0V when cycle is complete in one-shot mode
+            cv = 0.0f;
+        } else if (oneShotSwitch && justTriggered) {
+            // Output 0V immediately after trigger in one-shot mode
+            cv = 0.0f;
+            justTriggered = false; // Reset flag after first sample
+        } else {
+            // Update phase or step
+            bool shouldUpdate = !oneShotSwitch || (oneShotSwitch && isCycleActive);
+            if (shouldUpdate) {
+                if (isSmooth) {
+                    // Smooth modes: increment phase
+                    phase += rate / sampleRate;
+                    if (phase >= 1.0f) {
+                        phase = 0.0f;
+                        currentStep++;
+                        if (static_cast<int>(mode) == WIND_GUSTS) {
+                            currentNoise = nextNoise;
+                            nextNoise = dist(rng);
+                        }
+                        // In one-shot mode, stop after one full phase cycle
+                        if (oneShotSwitch && currentStep >= getCycleLength(static_cast<int>(mode))) {
+                            isCycleActive = false;
+                        }
+                    }
+                } else {
+                    // Stepped modes: increment phase and advance step
+                    phase += rate / sampleRate;
+                    if (phase >= 1.0f) {
+                        phase = 0.0f;
+                        currentStep++;
+                        // In one-shot mode, stop after reaching mode-specific cycle length
+                        if (oneShotSwitch && (currentStep >= getCycleLength(static_cast<int>(mode)))) {
+                            isCycleActive = false;
+                        }
+                    }
+                }
+
+                // Handle noise updates for Wind Gusts mode
+                if (static_cast<int>(mode) == WIND_GUSTS) {
+                    noisePhase += noiseUpdateRate / sampleRate;
+                    if (noisePhase >= 1.0f) {
+                        noisePhase = 0.0f;
                         currentNoise = nextNoise;
                         nextNoise = dist(rng);
                     }
-                    if (oneShotSwitch) {
-                        isCycleActive = false;
-                    }
                 }
-            } else {
-                phase += rate / sampleRate;
-                if (phase >= 1.0f) {
-                    phase = 0.0f;
-                    currentStep++;
-                    if (oneShotSwitch) {
-                        isCycleActive = false;
-                    }
-                }
-            }
 
-            if (static_cast<int>(mode) == WIND_GUSTS) {
-                noisePhase += noiseUpdateRate / sampleRate;
-                if (noisePhase >= 1.0f) {
-                    noisePhase = 0.0f;
-                    currentNoise = nextNoise;
-                    nextNoise = dist(rng);
-                }
+                // Compute output voltage
+                float angle = getPhaseAngle(mode, currentStep, phase);
+                cv = angle / 360.0f * 10.0f;
             }
         }
 
-        // Compute output
-        float angle = getPhaseAngle(mode, currentStep, phase);
-        cv = angle / 360.0f * 10.0f;
+        // Set output and light
         outputs[MODULATORSIGNAL_OUTPUT].setVoltage(cv);
         lights[MODULATORLED_LIGHT].setBrightness(cv / 10.0f);
     }
